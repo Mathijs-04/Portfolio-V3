@@ -1,13 +1,17 @@
 /* The site's button (components/Button.jsx): a dark plaque framed by a thin
    double rule, with an ornate gothic bracket inside each corner. The bracket is the
    Arcane Archive ornament (public/fx/corner-ornament.svg) used as a mask, so it
-   takes any colour. Hover brightens the rules, brackets, fill and label. */
+   takes any colour. The plaque is dirtied like the prototype's stone cards: a
+   grime splatter (public/fx/Grime.webp, the prototype's Texture-Overlay) as a
+   dark mask, plus fine noise multiplied over it. Hover brightens the rules,
+   brackets, fill and label. */
 
 .btn {
     --btn-ink: rgba(233, 230, 223, 0.62); /* brackets */
     --btn-rule: rgba(233, 230, 223, 0.28); /* outer rule */
     --btn-rule-inner: rgba(233, 230, 223, 0.12);
-    --btn-fill: rgba(8, 8, 8, 0.8);
+    --btn-fill: rgba(38, 37, 34, 0.86);
+    --btn-grime: rgba(0, 0, 0, 0.32);
     --corner: 1.35em;
     position: relative;
     isolation: isolate;
@@ -45,6 +49,30 @@
         box-shadow 0.35s ease;
 }
 
+/* Grime: dark splatter, heaviest towards the edges of the crop. */
+.btn__grime {
+    position: absolute;
+    z-index: -1;
+    inset: 1px;
+    background: var(--btn-grime);
+    -webkit-mask: url("/fx/Grime.webp") 32% 18% / 230% auto no-repeat;
+    mask: url("/fx/Grime.webp") 32% 18% / 230% auto no-repeat;
+    pointer-events: none;
+}
+
+/* Fine surface noise, multiplied (stays inside the button thanks to isolation). */
+.btn::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 1px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E")
+        0 0 / 160px 160px;
+    mix-blend-mode: multiply;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
 .btn__corner {
     position: absolute;
     width: var(--corner);
@@ -73,7 +101,7 @@
     --btn-ink: rgba(240, 237, 230, 0.95);
     --btn-rule: rgba(233, 230, 223, 0.55);
     --btn-rule-inner: rgba(233, 230, 223, 0.22);
-    --btn-fill: rgba(22, 21, 20, 0.88);
+    --btn-fill: rgba(54, 52, 48, 0.9);
     color: var(--bone);
 }
 

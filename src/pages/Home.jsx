@@ -8,8 +8,7 @@ function Home() {
                 <p className="home__role">Creative Technologist</p>
             </header>
             <div className="home__actions">
-                {/* Placeholder label: change to the user's own wording. */}
-                <Button to="/projects">View projects</Button>
+                <Button to="/projects">Explore my work</Button>
             </div>
         </div>
     );

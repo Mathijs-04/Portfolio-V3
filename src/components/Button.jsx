@@ -11,6 +11,7 @@ function Button({ to, href, children, className = "", ...rest }) {
     const classes = `btn ${className}`.trim();
     const content = (
         <>
+            <span className="btn__grime" aria-hidden="true" />
             {CORNERS.map((c) => (
                 <span key={c} className={`btn__corner btn__corner--${c}`} aria-hidden="true" />
             ))}
