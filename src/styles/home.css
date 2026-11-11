@@ -1,0 +1,39 @@
+/* Home (new design, not ported from the prototype). */
+
+.home__intro {
+    margin-top: clamp(32px, 9vh, 96px);
+}
+
+/* The name: Ransite, large. Layered dark shadows (from the prototype's title)
+   lift it off the sky without a visible outline. */
+.home__name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 6.4vw, 5.6rem);
+    font-weight: normal;
+    line-height: 1;
+    color: var(--bone);
+    text-shadow:
+        0 0 2px rgba(0, 0, 0, 0.95),
+        0 0 10px rgba(0, 0, 0, 0.85),
+        0 0 34px rgba(0, 0, 0, 0.75);
+}
+
+.home__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: clamp(1.6rem, 4vh, 2.4rem);
+}
+
+/* The role: same face as the name, made lighter by size and a softer colour
+   (Ransite has one weight). Its capitals C and T read fine; avoid E, I and L. */
+.home__role {
+    margin: 0.5rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 2.8vw, 2.45rem);
+    font-weight: normal;
+    line-height: 1.2;
+    color: var(--mist);
+    text-shadow: 0 0 14px rgba(0, 0, 0, 0.95);
+}

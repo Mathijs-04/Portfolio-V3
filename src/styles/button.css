@@ -1,0 +1,86 @@
+/* The site's button (components/Button.jsx): a dark plaque framed by a thin
+   double rule, with an ornate gothic bracket inside each corner. The bracket is the
+   Arcane Archive ornament (public/fx/corner-ornament.svg) used as a mask, so it
+   takes any colour. Hover brightens the rules, brackets, fill and label. */
+
+.btn {
+    --btn-ink: rgba(233, 230, 223, 0.62); /* brackets */
+    --btn-rule: rgba(233, 230, 223, 0.28); /* outer rule */
+    --btn-rule-inner: rgba(233, 230, 223, 0.12);
+    --btn-fill: rgba(8, 8, 8, 0.8);
+    --corner: 1.35em;
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.1em;
+    padding: 0.2em 2.3em 0.1em;
+    border: 0;
+    background: none;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1;
+    color: rgba(233, 230, 223, 0.85);
+    text-decoration: none;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.95);
+    cursor: pointer;
+    transition: color 0.35s ease;
+}
+
+/* Plaque and double rule. The corners are covered by the brackets. */
+.btn::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: var(--btn-fill);
+    border: 1px solid var(--btn-rule);
+    box-shadow:
+        inset 0 0 0 3px var(--btn-fill),
+        inset 0 0 0 4px var(--btn-rule-inner);
+    transition:
+        background-color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+.btn__corner {
+    position: absolute;
+    width: var(--corner);
+    aspect-ratio: 1;
+    background: var(--btn-ink);
+    -webkit-mask: url("/fx/corner-ornament.svg") center / contain no-repeat;
+    mask: url("/fx/corner-ornament.svg") center / contain no-repeat;
+    pointer-events: none;
+    transition: background-color 0.35s ease;
+}
+
+/* Tucked inside the frame, resting on the inner rule. The source ornament is a
+   bottom-left bracket; the others are mirrors of it. */
+.btn__corner--bl { left: 4px; bottom: 4px; }
+.btn__corner--br { right: 4px; bottom: 4px; transform: scaleX(-1); }
+.btn__corner--tl { left: 4px; top: 4px; transform: scaleY(-1); }
+.btn__corner--tr { right: 4px; top: 4px; transform: rotate(180deg); }
+
+.btn__label {
+    position: relative;
+    letter-spacing: 0.01em;
+}
+
+.btn:hover,
+.btn:focus-visible {
+    --btn-ink: rgba(240, 237, 230, 0.95);
+    --btn-rule: rgba(233, 230, 223, 0.55);
+    --btn-rule-inner: rgba(233, 230, 223, 0.22);
+    --btn-fill: rgba(22, 21, 20, 0.88);
+    color: var(--bone);
+}
+
+.btn:active {
+    translate: 0 1px;
+}
+
+.btn:focus-visible {
+    outline-offset: 6px;
+}
