@@ -1,5 +1,22 @@
 /* The shared background, ported from The Arcane Archive (via the Portfolio-V2 prototype).
-   Layer order: starfield (z -4) → fog (z -2) → page (z 1) → nav (z 20) → grain (z 9999). */
+   Layer order: starfield + moon (z -4) → backdrop (z -3) → fog (z -2) → page (z 1)
+   → nav (z 20) → grain (z 9999). */
+
+/* Tuning knobs for the whole background; values chosen by the user with the DebugPanel sliders.
+   Brightness values are multipliers (1 = as designed); opacities are absolute. */
+:root {
+    --bg-backdrop-opacity: 0.5;
+    --bg-backdrop-brightness: 0.75;
+    --bg-horizon-glow: 1.9;
+    --bg-glow-start: 47; /* % of the backdrop's height where the glow begins; lower = reaches higher */
+    --bg-stars: 1.2;
+    --bg-moon: 1.05;
+    --bg-moon-halo: 0.9;
+    --bg-fog-opacity: 0.26;
+    --bg-fog-top: 0; /* % from the top of the screen where the fog layer starts */
+    --bg-fog-fade: 26; /* % of the fog layer spent fading in at its top edge */
+    --bg-fog-speed: 0.5; /* playback rate of the fog video (read by Atmosphere.jsx) */
+}
 
 /* Lets the whole sky brighten smoothly when a page asks for it (html[data-sky]). */
 @property --star-boost {
@@ -12,6 +29,11 @@
 
 .starfield {
     --star-boost: 1;
+    /* Shared by the moon and the star mask that keeps stars away from it. */
+    --moon-size: clamp(56px, 9vw, 104px);
+    --moon-top: 9%;
+    --moon-right: 12%;
+    --moon-clear: calc(var(--moon-size) * 0.8); /* star-free radius around the moon's centre */
     transition: --star-boost 3s ease;
     position: fixed;
     inset: 0;
@@ -21,10 +43,30 @@
     contain: strict;
 }
 
-/* Stars only in the upper half: the fog owns the lower part of the screen. */
+/* Holds both star layers. A static radial mask cuts a soft star-free circle
+   around the moon, so it adapts to any screen size without re-placing stars. */
+.starfield__sky {
+    --moon-x: calc(100% - var(--moon-right) - var(--moon-size) / 2);
+    --moon-y: calc(var(--moon-top) + var(--moon-size) / 2);
+    position: absolute;
+    inset: 0;
+    -webkit-mask-image: radial-gradient(
+        circle at var(--moon-x) var(--moon-y),
+        transparent var(--moon-clear),
+        #000 calc(var(--moon-clear) + 18px)
+    );
+    mask-image: radial-gradient(
+        circle at var(--moon-x) var(--moon-y),
+        transparent var(--moon-clear),
+        #000 calc(var(--moon-clear) + 18px)
+    );
+}
+
+/* Stars run down behind the mountains (the backdrop's silhouette hides them there);
+   the bottom 15% is always forest and fog. */
 .starfield__stars {
     position: absolute;
-    inset: 0 0 50% 0;
+    inset: 0 0 15% 0;
 }
 
 .star {
@@ -35,32 +77,255 @@
     height: var(--star-size);
     border-radius: 50%;
     background: #e9edf5;
-    opacity: calc(var(--star-min) * var(--star-boost));
+    opacity: calc(var(--star-min) * var(--star-boost) * var(--bg-stars));
     will-change: opacity;
     animation: star-twinkle var(--star-duration) ease-in-out infinite;
     animation-delay: var(--star-delay);
 }
 
+/* The few brightest stars: a small, soft glow (static, so it costs nothing to twinkle). */
+.star--bright {
+    box-shadow: 0 0 3px 0.5px rgba(233, 237, 245, 0.45);
+}
+
 @keyframes star-twinkle {
     0%,
     100% {
-        opacity: calc(var(--star-min) * var(--star-boost));
+        opacity: calc(var(--star-min) * var(--star-boost) * var(--bg-stars));
     }
     50% {
-        opacity: calc(var(--star-max) * var(--star-boost));
+        opacity: calc(var(--star-max) * var(--star-boost) * var(--bg-stars));
     }
+}
+
+/* Deep sky: a denser, fainter field down to the mountains, plus a hazy band.
+   Hidden by default; html[data-sky="skills"] reveals it. */
+.starfield__deep {
+    position: absolute;
+    inset: 0 0 15% 0;
+    opacity: 0;
+    transition: opacity 3s ease;
+}
+
+.starfield__milkyway {
+    position: absolute;
+    inset: -30% -20%;
+    /* Invisible but not 0, so the browser draws it up front instead of on the first
+       frame of the fade-in (which cost two dropped frames). */
+    opacity: 0.001;
+    rotate: -22deg;
+    background:
+        radial-gradient(ellipse 46% 9% at 50% 46%, rgba(214, 222, 240, 0.09), transparent 70%),
+        radial-gradient(ellipse 30% 5% at 42% 49%, rgba(240, 228, 205, 0.06), transparent 70%),
+        radial-gradient(ellipse 60% 14% at 55% 44%, rgba(160, 175, 210, 0.05), transparent 72%);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.6 -0.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.6 -0.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+    -webkit-mask-size: 900px 900px;
+    mask-size: 900px 900px;
+    transition: opacity 4s ease;
+    /* Pre-promoted: without this, fading this large masked, rotated layer in
+       repainted it every frame and dropped the page to 30fps for the whole fade. */
+    will-change: opacity;
+}
+
+html[data-sky="skills"] .starfield {
+    --star-boost: 2.2;
+}
+
+html[data-sky="skills"] .starfield__deep,
+html[data-sky="skills"] .starfield__milkyway {
+    opacity: 1;
+}
+
+/* ---------- Shooting star ---------- */
+
+/* Peak brightness follows the stars (and brightens with them via --star-boost). */
+.shooting-star {
+    position: absolute;
+    inset: 0;
+    opacity: min(1, calc(0.42 * var(--star-boost) * var(--bg-stars)));
+    pointer-events: none;
+}
+
+/* A thin tail fading in towards a small round head, in the stars' colour.
+   Placed, rotated and moved by ShootingStar.jsx; invisible between shots. */
+.shooting-star__streak {
+    position: absolute;
+    height: 1px;
+    opacity: 0;
+    background: linear-gradient(90deg, rgba(233, 237, 245, 0), #e9edf5);
+    will-change: transform, opacity;
+}
+
+.shooting-star__streak::after {
+    content: "";
+    position: absolute;
+    top: -0.75px;
+    right: -1px;
+    width: 2.5px;
+    height: 2.5px;
+    border-radius: 50%;
+    background: #e9edf5;
+}
+
+/* ---------- Moon ---------- */
+
+/* A soft disc with a night-coloured disc offset over it: a crescent. */
+.starfield__moon {
+    position: absolute;
+    top: var(--moon-top);
+    right: var(--moon-right);
+    width: var(--moon-size);
+    height: var(--moon-size);
+    border-radius: 50%;
+    /* A few soft grey maria (the darker "seas") sitting in the lit crescent, over the disc's light. */
+    background:
+        radial-gradient(ellipse 13% 18% at 79% 52%, rgba(120, 122, 128, 0.35), transparent 70%),
+        radial-gradient(ellipse 16% 11% at 62% 78%, rgba(120, 122, 128, 0.3), transparent 70%),
+        radial-gradient(ellipse 8% 9% at 86% 70%, rgba(120, 122, 128, 0.32), transparent 70%),
+        radial-gradient(ellipse 9% 7% at 44% 88%, rgba(120, 122, 128, 0.25), transparent 70%),
+        radial-gradient(
+            circle at 38% 36%,
+            rgba(240, 243, 250, 0.95) 0%,
+            rgba(212, 218, 232, 0.62) 45%,
+            rgba(180, 189, 208, 0.2) 70%,
+            rgba(180, 189, 208, 0) 80%
+        );
+    box-shadow:
+        0 0 34px rgba(200, 212, 232, 0.18),
+        0 0 78px rgba(180, 196, 222, 0.1);
+    filter: blur(0.4px) brightness(var(--bg-moon));
+    animation: moon-glow 12s ease-in-out infinite;
+}
+
+.starfield__moon::before {
+    content: "";
+    position: absolute;
+    top: -14%;
+    left: -22%;
+    width: 104%;
+    height: 104%;
+    border-radius: 50%;
+    background: var(--night);
+    box-shadow: 0 0 24px 14px var(--night);
+}
+
+/* Fine surface grain, only on the lit disc (multiplied, so the dark side stays dark). */
+.starfield__moon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='3' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.45  0 0 0 0 0.47  0 0 0 1.3 -0.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E")
+        center / cover;
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+}
+
+/* Faint scattered light around the moon, centred a little towards the lit side.
+   Painted over the moon (it is light in the air, in front of everything). */
+.starfield__halo {
+    position: absolute;
+    top: calc(var(--moon-top) + var(--moon-size) * 0.58);
+    right: calc(var(--moon-right) + var(--moon-size) * 0.42);
+    width: calc(var(--moon-size) * 3.4);
+    aspect-ratio: 1;
+    translate: 50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle closest-side,
+        rgba(222, 226, 234, calc(0.07 * var(--bg-moon-halo))),
+        rgba(222, 226, 234, calc(0.035 * var(--bg-moon-halo))) 40%,
+        rgba(222, 226, 234, calc(0.012 * var(--bg-moon-halo))) 70%,
+        transparent
+    );
+}
+
+@keyframes moon-glow {
+    0%,
+    100% {
+        opacity: 0.85;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ---------- Backdrop: mountains, forest and castle ---------- */
+
+.forest {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* The image's box (4535x1512). Normally 70% of the screen height, anchored
+   bottom-right so the castle stays in view on narrow screens. On screens wider
+   than the image (ultrawide) it grows to the full width instead, so the mountains
+   never stop short; the extra height only eats into the image's empty sky. */
+.forest__frame {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: max(70%, 100vw * 1512 / 4535);
+    aspect-ratio: 4535 / 1512;
+}
+
+/* Moonlit haze low in the sky. Sits above the stars (they dim slightly near
+   the horizon, as they do in a real sky) and below the silhouette, so it only
+   shows above the ridgeline. The peaks span 40-66% of the image height. */
+.forest__glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(205, 208, 214, 0) calc(var(--bg-glow-start) * 1%),
+        rgba(205, 208, 214, calc(0.03 * var(--bg-horizon-glow))) calc(var(--bg-glow-start) * 1% + (80% - var(--bg-glow-start) * 1%) * 0.37),
+        rgba(205, 208, 214, calc(0.065 * var(--bg-horizon-glow))) calc(var(--bg-glow-start) * 1% + (80% - var(--bg-glow-start) * 1%) * 0.72),
+        rgba(205, 208, 214, calc(0.08 * var(--bg-horizon-glow))) 80%
+    );
+}
+
+/* The backdrop's shape filled with the night colour, at full opacity, so stars
+   behind the mountains are hidden. */
+.forest__occluder {
+    position: absolute;
+    inset: 0;
+    background: var(--night);
+    -webkit-mask: url("/fx/Background.webp") center / 100% 100% no-repeat;
+    mask: url("/fx/Background.webp") center / 100% 100% no-repeat;
+}
+
+/* The artwork on top of the silhouette: present, but kept vague. */
+.forest__art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    opacity: var(--bg-backdrop-opacity);
+    filter: brightness(var(--bg-backdrop-brightness)); /* static: only changes when tuned */
+    transition: opacity 3s ease;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+html[data-sky="skills"] .forest__art {
+    opacity: calc(var(--bg-backdrop-opacity) * 0.6);
 }
 
 /* ---------- Fog ---------- */
 
 .fog {
     position: fixed;
-    inset: 40% 0 0 0;
+    inset: calc(var(--bg-fog-top) * 1%) 0 0 0;
     z-index: -2;
     pointer-events: none;
     overflow: hidden;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 26%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 26%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 calc(var(--bg-fog-fade) * 1%));
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 calc(var(--bg-fog-fade) * 1%));
 }
 
 .fog__video {
@@ -69,8 +334,12 @@
     height: 100%;
     object-fit: cover;
     object-position: bottom;
-    opacity: 0.3;
+    opacity: var(--bg-fog-opacity);
     transition: opacity 3s ease;
+}
+
+html[data-sky="skills"] .fog__video {
+    opacity: calc(var(--bg-fog-opacity) * 0.3);
 }
 
 /* ---------- Grain ---------- */
@@ -102,7 +371,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .star {
+    .star,
+    .starfield__moon {
         animation: none;
     }
 }

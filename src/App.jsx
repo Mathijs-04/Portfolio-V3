@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useOutlet } from "react-router";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Atmosphere from "./components/Atmosphere.jsx";
 import Nav from "./components/Nav.jsx";
@@ -8,6 +8,12 @@ import Projects from "./pages/Projects.jsx";
 import Skills from "./pages/Skills.jsx";
 import About from "./pages/About.jsx";
 
+// Background tuning sliders (components/DebugPanel.jsx). Switched off now that the values are
+// chosen; set to true to bring them back. Even then they only load in `npm run dev`.
+const SHOW_BG_DEBUG = false;
+const DebugPanel =
+    import.meta.env.DEV && SHOW_BG_DEBUG ? lazy(() => import("./components/DebugPanel.jsx")) : null;
+
 const TITLES = {
     "/": "Home",
     "/projects": "Projects",
@@ -15,8 +21,9 @@ const TITLES = {
     "/about": "About",
 };
 
-// Pages can tune the shared sky via html[data-sky]. Empty for now: every page uses "default".
-const SKY_MODES = {};
+// Pages can tune the shared sky via html[data-sky] (see atmosphere.css).
+// "skills" lifts the fog and reveals the deep stars and milky way.
+const SKY_MODES = { "/skills": "skills" };
 
 const PAGE_FADE = {
     initial: { opacity: 0 },
@@ -39,6 +46,11 @@ function Layout() {
             {/* The sky and nav persist across pages; only the page itself fades. */}
             <Atmosphere mode={SKY_MODES[pathname] ?? "default"} />
             <Nav />
+            {DebugPanel && (
+                <Suspense fallback={null}>
+                    <DebugPanel />
+                </Suspense>
+            )}
             <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>
                 <motion.main key={pathname} className="page" {...PAGE_FADE}>
                     {outlet}
