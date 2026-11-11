@@ -25,11 +25,11 @@ export function Ornaments() {
 /**
  * The front of a project card (ported from the prototype). Sizes are in container
  * units (cqw), so the same face renders at any card size.
- * `project`: { name, rarity, tagline, tech[], images[] } (the first image is the card art).
+ * `project`: { name, rarity, tagline, tech[], cover } (cover: the 640px card art thumbnail).
  * `children` are painted on the stone, behind the art and text (e.g. legendary embers).
  */
 function CardFace({ project, children }) {
-    const { name, rarity, tagline, tech, images } = project;
+    const { name, rarity, tagline, tech, cover } = project;
     const shown = tech.length > MAX_FRONT_TILES ? MAX_FRONT_TILES - 1 : tech.length;
     const extraTech = tech.length - shown;
 
@@ -44,7 +44,7 @@ function CardFace({ project, children }) {
             <h3 className="face__name">{name}</h3>
 
             <figure className="face__art">
-                <img src={images[0]} alt={`Preview of ${name}`} loading="lazy" decoding="async" />
+                <img src={cover} alt={`Preview of ${name}`} loading="lazy" decoding="async" />
             </figure>
 
             <p className="face__tagline">{tagline}</p>

@@ -10,10 +10,10 @@ we move over one piece at a time and adjust it as we go.
 ## Roadmap (in order)
 
 1. **Background** — sky/fog/grain. Done.
-2. **Projects** (trading cards) ← current step. Card front, rarity tiers and the detail view
-   (inspector + card back) are done on placeholder data. Next: bring over the real projects
-   (`projects.js` in the prototype: names, taglines, lore, images, links), 640px thumbnails for the
-   card fronts, the deal-in on scroll, and decide rarities with the user.
+2. **Projects** (trading cards) ← current step. Cards, rarity tiers, detail view and the real
+   data (27 projects from the original portfolio + a PLACEHOLDER "Fantasy Portfolio" card for this
+   site, rarities set by the user), sorting and the deal-in are in. Still open: real
+   texts/images for the Fantasy Portfolio card.
 3. **Home** — started early: name, role and an "Explore my work" button. Will be redesigned.
 4. Transfer and update the Skills section (constellations).
 5. A brand-new About page.
@@ -66,16 +66,30 @@ Vite 6 + React 18 + react-router 7 + framer-motion 11, plain CSS (one file per a
 
 ### Projects (trading cards)
 
-- `src/data/projects.js` — `sampleCards`: four PLACEHOLDER cards (Common, Rare, Epic, Legendary, in
-  that order) with deliberately long tech/image lists to stress the layout. Project shape:
-  `slug, name, rarity, tagline, tech[], images[]` (first image = card art, all in the gallery),
-  `lore[]` (one string per paragraph), `links[]` (`{ label, href, kind: "code" | "live" }`).
-- `pages/Projects.jsx` — the deck (4 across, 2x2 below 900px) and the portalled inspector.
+- `src/data/projects.js` — all 27 projects, in the order of the original portfolio's overview
+  (`~/Code/Portfolio/Portfolio`, `src/pages/Projects.jsx` + `src/pages/projects/*.jsx`).
+  Shape: `slug, name, rarity, order` (chronological, 1 = oldest; for sorting later, not the
+  display order), `tagline, tech[], cover` (640px thumbnail in `public/projects/thumbs/`),
+  `images[]` (full size, the gallery), `lore[]` (2 paragraphs), `links[]` (`{ label, href,
+  kind: "code" | "live" }`, max 2). Rarities were chosen by the user. Texts were rewritten from
+  the originals to a similar length (~60–160 words) and tone, without adding new claims; tech
+  lists were checked against the repos. Images over 1 MB were re-encoded at 2560px (WebP q85).
+- `pages/Projects.jsx` — header with the sort dropdown, the deck (4 across, 2 below 900px; 28
+  cards so rows stay full) and the portalled inspector. `SORTS`: default (data order), rarity,
+  date (`order`) and name, each ascending/descending; stable, so ties keep the default order.
+  Cards glide to their new place via framer `layout="position"` on the `<li>`.
+  `useDealIn`: one IntersectionObserver deals each card in once as it scrolls into view (CSS
+  transition on `opacity` + the individual `translate`/`rotate` properties, 70ms stagger per
+  batch). It must not use `transform`: framer owns that on the `<li>` for the reorder.
+  Changing the sort calls `dealAll()` first: cards that glide into view are not reported by the
+  observer, so every undealt card is shown at once (this was a bug: gaps after sorting).
+- `SortSelect.jsx` — the dropdown: an accessible listbox (arrows/Home/End/Enter/Esc, click
+  outside closes), dark plaque with a double rule; the chosen option has a small diamond.
 - `ProjectCard.jsx` — tilt (`useTilt.js`, CSS vars, no re-renders), click/Enter opens. Measures the
   untransformed `.deck__slot`, not the (lifted/tilted) card, as the flight origin.
 - `CardFace.jsx` — the front, all sized in `cqw`: stone surface + grime (kept to the edges so text
   stays readable), double-ruled frame, corner ornaments, rarity stone (`Gem.jsx`: an oval stone in
-  a clawed mount of the card's ink), art (greyscale until hover), tagline, tech tiles, rarity
+  a clawed mount of the card's ink), art (full colour, no filter), tagline, tech tiles, rarity
   label. Tech tiles: max 6, the last becomes "+N" when there are more. `children` render on the
   stone behind the content (used for legendary embers).
 - `TechIcon.jsx` — tech name → react-icons (Simple Icons for brands, Tabler/Game icons otherwise;
