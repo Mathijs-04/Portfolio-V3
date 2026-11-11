@@ -1,0 +1,424 @@
+/* ==========================================================================
+   Trading card (ported from the Portfolio-V2 prototype; styling in progress)
+   .card          tilt host
+   .card__inner   size container + stone backing
+   .face          the printed card (front or back), sized in cqw
+
+   Performance notes: no CSS/SVG filters on the card itself. The offset backing is a
+   clipped layer, the drop shadow a plain box-shadow, and foil/glare move with
+   transform (composited) instead of repainting their gradients.
+   ========================================================================== */
+
+.card {
+    --px: 0.5;
+    --py: 0.5;
+    --rx: 0deg;
+    --ry: 0deg;
+    --hover: 0;
+    --backing: #2d2b28;
+
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 63 / 88;
+    cursor: pointer;
+    transform: perspective(1100px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(calc(var(--hover) * -6px));
+    transition: transform 0.7s var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.card[data-tilting] {
+    transition: transform 0.12s ease-out;
+}
+
+.card:focus-visible {
+    outline-offset: 10px;
+}
+
+.card[data-rarity="legendary"] { --backing: #5c4219; }
+.card[data-rarity="epic"]      { --backing: #3a2c4f; }
+.card[data-rarity="rare"]      { --backing: #2a3442; }
+
+.card__shadow {
+    position: absolute;
+    inset: 4% 3% 0;
+    border-radius: 8%;
+    box-shadow: 0 24px 36px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+}
+
+/* Rarity glow: a static radial gradient, only its opacity ever changes. */
+.card::before {
+    content: "";
+    position: absolute;
+    inset: -8%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--r) 55%, transparent), transparent);
+    opacity: calc(var(--aura, 0) + var(--hover) * 0.2);
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.card[data-rarity="epic"]      { --aura: 0.18; }
+.card[data-rarity="legendary"] { --aura: 0.38; }
+
+.card__inner {
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+    isolation: isolate;
+}
+
+/* The stone backing peeking out bottom-right, like the Archive player. */
+.card__inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--backing, #2d2b28);
+    clip-path: var(--rough-edge);
+    transform: translate(4px, 5px);
+}
+
+/* ---------- The printed face ---------- */
+
+.face {
+    --face-bg: #9d9a94;
+    --ink: #0d0c0b;
+    --ink-soft: rgba(13, 12, 11, 0.78);
+    --ink-faint: rgba(13, 12, 11, 0.32);
+    --frame: rgba(13, 12, 11, 0.86);
+    --ornament: #0d0c0b;
+    --texture: #000;
+    --texture-opacity: 0.3;
+
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: 2.6cqw;
+    padding: 10cqw 8.5cqw 6.5cqw;
+    color: var(--ink);
+    background: var(--face-bg);
+    overflow: hidden;
+    clip-path: var(--rough-edge);
+}
+
+/* Legendary cards are struck in obsidian and gold leaf. */
+.face[data-rarity="legendary"] {
+    --face-bg: #16130f;
+    --ink: var(--legendary);
+    --ink-soft: rgba(232, 180, 90, 0.82);
+    --ink-faint: rgba(232, 180, 90, 0.3);
+    --frame: var(--legendary);
+    --ornament: var(--legendary);
+    --texture: #f3d9a4;
+    --texture-opacity: 0.09;
+}
+
+.face[data-rarity="epic"] {
+    --face-bg: #9894a0;
+    --frame: #2a1d3d;
+}
+
+.face[data-rarity="rare"] {
+    --face-bg: #959a9f;
+    --frame: #17202b;
+}
+
+/* Stone grain and grime (public/fx/Grime.webp), borrowed from the Archive's player. */
+.face__surface,
+.face__surface::before,
+.face__surface::after {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.face__surface::before {
+    content: "";
+    background: var(--texture);
+    opacity: var(--texture-opacity);
+    -webkit-mask: url("/fx/Grime.webp") 30% 20% / 240% auto;
+    mask: url("/fx/Grime.webp") 30% 20% / 240% auto;
+}
+
+.face__surface::after {
+    content: "";
+    background-image:
+        linear-gradient(168deg, rgba(255, 255, 255, 0.08) 0%, transparent 38%, rgba(0, 0, 0, 0.05) 72%, transparent 100%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E");
+    background-size: auto, 160px 160px;
+    mix-blend-mode: multiply;
+    opacity: 0.85;
+}
+
+.face[data-rarity="legendary"] .face__surface::after {
+    mix-blend-mode: screen;
+    opacity: 0.16;
+}
+
+/* Double ruled frame. */
+.face::before {
+    content: "";
+    position: absolute;
+    inset: 3.6cqw;
+    z-index: 1;
+    border: 1.1cqw double var(--frame);
+    pointer-events: none;
+}
+
+.ornament {
+    position: absolute;
+    z-index: 2;
+    width: 24cqw;
+    aspect-ratio: 1;
+    background: var(--ornament);
+    -webkit-mask: url("/fx/corner-ornament.svg") center / contain no-repeat;
+    mask: url("/fx/corner-ornament.svg") center / contain no-repeat;
+    pointer-events: none;
+}
+
+.ornament--bl { left: 2.2cqw;  bottom: 2.2cqw; }
+.ornament--br { right: 2.2cqw; bottom: 2.2cqw; transform: scaleX(-1); }
+.ornament--tl { left: 2.2cqw;  top: 2.2cqw;    transform: scaleY(-1); }
+.ornament--tr { right: 2.2cqw; top: 2.2cqw;    transform: rotate(180deg); }
+
+.face > :not(.face__surface, .ornament, .face__fx, .face__gem) {
+    position: relative;
+    z-index: 2;
+}
+
+/* ---------- Front ---------- */
+
+.face__gem {
+    position: absolute;
+    z-index: 3;
+    top: 0.9cqw;
+    left: 50%;
+    width: 8cqw;
+    translate: -50% 0;
+}
+
+.face__name {
+    margin: 0;
+    padding-inline: 8cqw;
+    font-size: 7.4cqw;
+    font-weight: 600;
+    line-height: 1.08;
+    text-align: center;
+    text-wrap: balance;
+}
+
+.face__art {
+    margin: 0;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 0.9cqw solid var(--ink);
+    outline: 0.35cqw solid var(--ink-faint);
+    outline-offset: 0.8cqw;
+    background: #111;
+}
+
+.face__art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) sepia(0.18) contrast(1.1) brightness(0.88);
+    transition: filter 0.8s ease;
+}
+
+.face[data-rarity="legendary"] .face__art img {
+    filter: grayscale(0.85) sepia(0.5) contrast(1.12) brightness(0.84);
+}
+
+/* Colour bleeds into the art when you hold the card. */
+.card:hover .face__art img,
+.card:focus-visible .face__art img {
+    filter: none;
+}
+
+.face__tagline {
+    margin: 0;
+    font-size: 5cqw;
+    font-style: italic;
+    line-height: 1.25;
+    color: var(--ink-soft);
+}
+
+.face__tech {
+    display: flex;
+    gap: 1.4cqw;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: hidden;
+}
+
+.face__tech li {
+    flex: none;
+    padding: 0.3cqw 1.8cqw;
+    border: 0.3cqw solid var(--ink-faint);
+    font-size: 3.6cqw;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.face__tech .face__tech-more {
+    border-style: dashed;
+}
+
+.face__rarity {
+    margin: 0;
+    padding-inline: 14cqw;
+    font-size: 3.8cqw;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.face[data-rarity]:not([data-rarity="common"]) .face__rarity {
+    color: color-mix(in srgb, var(--r) 55%, var(--ink));
+}
+
+.face[data-rarity="legendary"] .face__rarity {
+    color: var(--legendary);
+}
+
+/* Small cards (two-up on phones): keep the essentials. */
+@container (max-width: 200px) {
+    .face__tagline,
+    .face__tech {
+        display: none;
+    }
+    .face__name {
+        font-size: 9cqw;
+    }
+    .face__rarity {
+        font-size: 5cqw;
+    }
+}
+
+/* ---------- Gem ---------- */
+
+.gem {
+    display: block;
+    overflow: visible;
+}
+
+.gem__body  { fill: var(--r); }
+.gem__light { fill: rgba(255, 255, 255, 0.55); }
+.gem__shade { fill: rgba(0, 0, 0, 0.35); }
+.gem__edge  { stroke: var(--ink, #0d0c0b); stroke-width: 1.3; stroke-linejoin: round; }
+
+/* ---------- Foil & glare (moved, never repainted) ---------- */
+
+.face__fx {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.face__glare,
+.face__foil {
+    position: absolute;
+    left: -50%;
+    top: -50%;
+    width: 200%;
+    height: 200%;
+    transform: translate(calc((var(--px, 0.5) - 0.5) * 40%), calc((var(--py, 0.5) - 0.5) * 40%));
+    transition: opacity 0.4s ease;
+}
+
+.face__glare {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.5), transparent 24%);
+    mix-blend-mode: soft-light;
+    opacity: calc(var(--hover, 0) * 0.85);
+}
+
+.face__foil {
+    opacity: 0;
+    mix-blend-mode: color-dodge;
+    transform: translate(calc((var(--px, 0.5) - 0.5) * -60%), calc((var(--py, 0.5) - 0.5) * -60%));
+}
+
+.face[data-rarity="rare"] .face__foil {
+    background: repeating-linear-gradient(120deg, transparent 0 4%, rgba(196, 220, 247, 0.35) 5.5%, transparent 7%);
+    opacity: calc(var(--hover, 0) * 0.5);
+}
+
+.face[data-rarity="epic"] .face__foil {
+    background: repeating-linear-gradient(
+        115deg,
+        transparent 0%,
+        rgba(169, 124, 230, 0.45) 2.5%,
+        rgba(110, 200, 220, 0.3) 4.5%,
+        rgba(255, 140, 220, 0.35) 6.5%,
+        transparent 9%
+    );
+    opacity: calc(var(--hover, 0) * 0.6);
+}
+
+.face[data-rarity="legendary"] .face__foil {
+    background: repeating-linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(255, 214, 130, 0.5) 2.5%,
+        rgba(255, 160, 80, 0.18) 4%,
+        transparent 5.5%,
+        rgba(255, 244, 210, 0.4) 7.5%,
+        transparent 9.5%
+    );
+    opacity: calc(0.07 + var(--hover, 0) * 0.7);
+}
+
+/* ---------- Embers (legendary) ---------- */
+
+.embers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.ember {
+    position: absolute;
+    left: var(--x);
+    bottom: 6%;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff3cf 0%, var(--legendary-hot) 35%, rgba(232, 140, 50, 0) 70%);
+    opacity: 0;
+    animation: ember-rise var(--dur) linear infinite;
+    animation-delay: var(--delay);
+}
+
+@keyframes ember-rise {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(1);
+    }
+    15% {
+        opacity: 0.9;
+    }
+    70% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--drift), -240px) scale(0.3);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card,
+    .card[data-tilting] {
+        transition: none;
+    }
+    .embers {
+        display: none;
+    }
+}

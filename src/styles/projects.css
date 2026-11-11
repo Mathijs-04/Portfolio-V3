@@ -1,0 +1,24 @@
+/* Projects page. For now: a row of sample cards, one per rarity. */
+
+.deck {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(20px, 2.6vw, 40px);
+    margin: 0 0 clamp(48px, 8vh, 96px);
+    padding: 0;
+    list-style: none;
+}
+
+.deck__slot {
+    width: 100%;
+    max-width: 300px;
+    justify-self: center;
+}
+
+/* Tablets: 2x2. Phones: still two-up (the face hides its small print below 200px). */
+@media (max-width: 900px) {
+    .deck {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px 18px;
+    }
+}

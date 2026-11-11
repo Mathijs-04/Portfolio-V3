@@ -5,6 +5,8 @@ import "./styles/base.css";
 import "./styles/atmosphere.css";
 import "./styles/button.css";
 import "./styles/home.css";
+import "./styles/card.css";
+import "./styles/projects.css";
 import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(

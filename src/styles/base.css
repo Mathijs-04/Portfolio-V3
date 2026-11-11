@@ -16,10 +16,35 @@
     --mist: rgba(233, 230, 223, 0.62);
     --ink: #0b0a09;
 
+    /* The world is monochrome, so card rarity is the only colour. */
+    --legendary: #e8b45a;
+    --legendary-hot: #ffd98a;
+    --epic: #a97ce6;
+    --epic-hot: #d4b8ff;
+    --rare: #7fa9da;
+    --rare-hot: #c4dcf7;
+    --common: #b9b5ad;
+    --common-hot: #ece9e2;
+
+    /* Hand-cut edge shared by every stone surface (cards, panels). */
+    --rough-edge: polygon(
+        0.75% 1.05%, 14% 0.42%, 31% 0.58%, 49% 0.38%, 67% 0.52%, 84% 0.44%, 96.5% 1.15%,
+        99.15% 3.8%, 98.65% 6.2%, 99.25% 9.5%, 99.05% 28%, 98.45% 29.35%, 98.85% 30.6%,
+        99.1% 52%, 99.05% 74%, 98.55% 86%, 99.2% 96.5%, 96.8% 98.85%, 78% 99.35%,
+        71.4% 99.05%, 70.15% 98.55%, 69.05% 99.28%, 48% 99.42%, 26% 99.18%, 8% 99.35%,
+        2.35% 98.75%, 0.82% 95.8%, 0.52% 81.5%, 1.05% 80.55%, 0.58% 79.35%, 0.48% 54%,
+        0.82% 28%, 0.42% 12.5%, 0.75% 1.05%
+    );
+
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
     color-scheme: dark;
 }
+
+[data-rarity="legendary"] { --r: var(--legendary); --r-hot: var(--legendary-hot); }
+[data-rarity="epic"]      { --r: var(--epic);      --r-hot: var(--epic-hot); }
+[data-rarity="rare"]      { --r: var(--rare);      --r-hot: var(--rare-hot); }
+[data-rarity="common"]    { --r: var(--common);    --r-hot: var(--common-hot); }
 
 *,
 *::before,
