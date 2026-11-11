@@ -9,9 +9,8 @@ import { projects } from "../data/projects.js";
 const RARITY_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
 const byName = (a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" });
 
-// Sorts are stable, so ties (e.g. two epics) keep the default order.
+// Sorts are stable, so ties (e.g. two epics) keep the order of the data file.
 const SORTS = [
-    { value: "default", label: "Default", compare: null },
     { value: "rarity-asc", label: "Rarity – Ascending", compare: (a, b) => RARITY_RANK[a.rarity] - RARITY_RANK[b.rarity] },
     { value: "rarity-desc", label: "Rarity – Descending", compare: (a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity] },
     { value: "date-asc", label: "Date – Ascending", compare: (a, b) => a.order - b.order },
@@ -71,7 +70,7 @@ function useDealIn(deckRef) {
 }
 
 function Projects() {
-    const [sort, setSort] = useState("default");
+    const [sort, setSort] = useState("rarity-desc");
     const [inspecting, setInspecting] = useState(null); // { project, origin }
     const [hiddenSlug, setHiddenSlug] = useState(null);
     const deckRef = useRef(null);
@@ -88,7 +87,7 @@ function Projects() {
 
     const sorted = useMemo(() => {
         const { compare } = SORTS.find((s) => s.value === sort);
-        return compare ? [...projects].sort(compare) : projects;
+        return [...projects].sort(compare);
     }, [sort]);
 
     const inspect = useCallback((project, origin) => {

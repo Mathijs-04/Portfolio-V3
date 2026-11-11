@@ -77,8 +77,8 @@ Vite 6 + React 18 + react-router 7 + framer-motion 11, plain CSS (one file per a
   the originals to a similar length (~60–160 words) and tone, without adding new claims; tech
   lists were checked against the repos. Images over 1 MB were re-encoded at 2560px (WebP q85).
 - `pages/Projects.jsx` — header with the sort dropdown, the deck (4 across, 2 below 900px; 28
-  cards so rows stay full) and the portalled inspector. `SORTS`: default (data order), rarity,
-  date (`order`) and name, each ascending/descending; stable, so ties keep the default order.
+  cards so rows stay full) and the portalled inspector. `SORTS`: rarity (default: descending),
+  date (`order`) and name, each ascending/descending; stable, so ties keep the data file's order.
   Cards glide to their new place via framer `layout="position"` on the `<li>`.
   `useDealIn`: one IntersectionObserver deals each card in once as it scrolls into view (CSS
   transition on `opacity` + the individual `translate`/`rotate` properties, 70ms stagger per
