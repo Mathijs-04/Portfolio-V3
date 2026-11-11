@@ -506,3 +506,62 @@
         display: none;
     }
 }
+
+/* ---------- Image viewer (double-click a gallery image) ---------- */
+
+.viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 200; /* above the card inspector (100) */
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 5vh, 56px) clamp(12px, 4vw, 64px);
+    background: rgba(5, 5, 5, 0.92);
+    cursor: zoom-out;
+}
+
+/* The image keeps its own proportions and is framed like the card's art window. */
+.viewer__image {
+    grid-area: 1 / 1;
+    max-width: 100%;
+    max-height: calc(100vh - 2 * clamp(16px, 5vh, 56px) - 2.5rem);
+    object-fit: contain;
+    border: 1px solid rgba(233, 230, 223, 0.3);
+    box-shadow:
+        0 0 0 5px rgba(5, 5, 5, 0.92),
+        0 0 0 6px rgba(233, 230, 223, 0.12),
+        0 24px 60px rgba(0, 0, 0, 0.7);
+    background: #111;
+    cursor: default;
+    user-select: none;
+}
+
+.viewer__count {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(10px, 2.5vh, 24px);
+    margin: 0;
+    translate: -50% 0;
+    color: var(--mist);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+.viewer__close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    padding: 0.2rem 0.6rem;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--mist);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.viewer__close:hover,
+.viewer__close:focus-visible {
+    color: var(--bone);
+}

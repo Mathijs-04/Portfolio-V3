@@ -111,6 +111,10 @@ Vite 6 + React 18 + react-router 7 + framer-motion 11, plain CSS (one file per a
   colour. (The user rejected arrows, the site button and side diamonds here.)
 - `CardGallery.jsx` — images slide (framer, transform only) on swipe/drag, ←/→ keys or the
   thumbnails (centred, wrapping); loops; small "n / total" counter. No arrow buttons.
+  Double-click/double-tap the image (framer `onTap` twice within 350ms, so a swipe never counts)
+  opens `ImageViewer.jsx`: near full-screen, portalled to `<body>` at z-index 200 (above the
+  inspector and outside its 3D transform). Esc (caught in the capture phase so the card stays
+  open), the × or a click beside the image closes it; ←/→ still switch images.
 
 Left in the prototype for later steps: real project data and images, deal-in, Skills → Projects
 "summon" link, all other page content.
