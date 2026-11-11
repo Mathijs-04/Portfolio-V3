@@ -1,0 +1,176 @@
+@font-face {
+    font-family: "Ransite";
+    src: url("/fonts/ransite-medieval.otf") format("opentype");
+    font-display: swap;
+}
+
+:root {
+    /* Ransite for titles only (its capital E, I and L are hard to read in body copy). */
+    --font-display: "Ransite", "EB Garamond", serif;
+    --font-body: "EB Garamond", Georgia, serif;
+
+    --nav-h: 72px;
+
+    --night: #050505;
+    --bone: #e9e6df;
+    --mist: rgba(233, 230, 223, 0.62);
+    --ink: #0b0a09;
+
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--night);
+    scrollbar-color: #3a3835 var(--night);
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    /* No background here: with one on <html> too, body's paints over the
+       negative z-index sky/forest/fog layers. The night colour lives on <html>. */
+    color: var(--bone);
+    font-family: var(--font-body);
+    font-size: 18px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+::selection {
+    background: rgba(232, 180, 90, 0.35);
+    color: #fff;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+button {
+    font: inherit;
+    color: inherit;
+}
+
+a {
+    color: inherit;
+}
+
+:focus-visible {
+    outline: 1px solid var(--bone);
+    outline-offset: 4px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* The worn letterpress look from The Arcane Archive. */
+.ink {
+    display: inline-block;
+    filter: url(#vintage-print);
+}
+
+/* ---------- Page shell ---------- */
+
+.page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding-top: var(--nav-h);
+}
+
+.container {
+    width: min(1240px, 100% - 32px);
+    margin-inline: auto;
+}
+
+.page-title {
+    margin: clamp(28px, 6vh, 64px) 0 clamp(24px, 4vh, 40px);
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: normal;
+    line-height: 1;
+    color: var(--bone);
+}
+
+/* ---------- Nav ---------- */
+
+.nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--nav-h);
+    background: linear-gradient(to bottom, rgba(5, 5, 5, 0.9) 0 55%, rgba(5, 5, 5, 0));
+}
+
+.nav__links {
+    display: flex;
+    gap: clamp(1.4rem, 5vw, 3.2rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav__link {
+    position: relative;
+    display: block;
+    padding: 0.3rem 0;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    text-decoration: none;
+    color: rgba(233, 230, 223, 0.5);
+    transition: color 0.3s ease;
+}
+
+.nav__link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transition: transform 0.4s var(--ease-out);
+}
+
+.nav__link:hover {
+    color: rgba(233, 230, 223, 0.8);
+}
+
+.nav__link.is-active {
+    color: var(--bone);
+}
+
+.nav__link.is-active::after {
+    transform: scaleX(1);
+}
+
+@media (max-width: 480px) {
+    .nav__links {
+        gap: 1.1rem;
+    }
+    .nav__link {
+        font-size: 1.05rem;
+    }
+}
