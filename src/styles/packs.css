@@ -1,0 +1,906 @@
+/* ==========================================================================
+   Booster packs (prototype): the sealed pack on the Projects page, the card cover
+   (face-down side), and the opening overlay.
+   Only transform/opacity animate (plus the individual translate/scale/rotate properties).
+   ========================================================================== */
+
+/* ---------- The pack wrapper (PackArt), sized in cqw ---------- */
+
+.pack-art {
+    --pack-gold: #c29b52;
+    --pack-gold-soft: rgba(194, 155, 82, 0.55);
+    --ornament: var(--pack-gold);
+
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+}
+
+.pack-art__body {
+    position: absolute;
+    inset: 8cqw 0;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 90% 60% at 50% 32%, #2b251b, transparent 70%),
+        linear-gradient(90deg, #0d0b08, #1b1712 18%, #1b1712 82%, #0d0b08);
+    box-shadow: 0 22px 34px rgba(0, 0, 0, 0.55);
+}
+
+/* Double gold rule. */
+.pack-art__body::before {
+    content: "";
+    position: absolute;
+    inset: 4cqw;
+    z-index: 1;
+    border: 1.1cqw double var(--pack-gold);
+    pointer-events: none;
+}
+
+/* Foil crinkle: fine noise, lighter towards the folded sides. */
+.pack-art__surface {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(255, 240, 210, 0.07), transparent 12%, transparent 88%, rgba(255, 240, 210, 0.07)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E")
+            0 0 / 160px 160px;
+    mix-blend-mode: screen;
+    opacity: 0.22;
+    pointer-events: none;
+}
+
+.pack-art .ornament {
+    width: 20cqw;
+}
+
+.pack-art__title {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    top: 64cqw;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 15cqw;
+    line-height: 1;
+    text-align: center;
+    color: #d8b96f;
+    text-shadow: 0 0 3cqw rgba(0, 0, 0, 0.9);
+}
+
+.pack-art__count {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    top: 84cqw;
+    margin: 0;
+    font-size: 6.4cqw;
+    font-weight: 600;
+    text-align: center;
+    color: rgba(216, 185, 111, 0.85);
+}
+
+/* A band of light across the foil; follows the tilt on the page. */
+.pack-art__sheen {
+    position: absolute;
+    z-index: 3;
+    inset: -30% -70%;
+    background: linear-gradient(
+        105deg,
+        transparent 42%,
+        rgba(255, 232, 180, 0.1) 47%,
+        rgba(255, 248, 228, 0.24) 50%,
+        rgba(255, 232, 180, 0.1) 53%,
+        transparent 58%
+    );
+    mix-blend-mode: screen;
+    transform: translateX(calc((var(--px, 0.3) - 0.5) * 50%));
+    transition: transform 0.6s var(--ease-out);
+    pointer-events: none;
+}
+
+/* Crimped foil strips with a saw-tooth edge (conic-gradient mask). */
+.pack-art__crimp {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10cqw;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 236, 196, 0.16) 0 0.5cqw, rgba(0, 0, 0, 0.28) 0.5cqw 1.5cqw),
+        linear-gradient(#5b4625, #33280f);
+}
+
+/* The top strip is the crimp plus a thin band of the wrapper below it: that band is what
+   tears. It sits above the body so the band covers the body's top edge until it's ripped. */
+.pack-art__crimp--top {
+    z-index: 3;
+    top: 0;
+    height: 11.6cqw;
+    background:
+        linear-gradient(180deg, transparent 10cqw, #2a241a 10cqw),
+        repeating-linear-gradient(90deg, rgba(255, 236, 196, 0.16) 0 0.5cqw, rgba(0, 0, 0, 0.28) 0.5cqw 1.5cqw) top / 100% 10cqw
+            no-repeat,
+        linear-gradient(#5b4625, #33280f) top / 100% 10cqw no-repeat;
+    -webkit-mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 0 0 / 4cqw 100%;
+    mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 0 0 / 4cqw 100%;
+    /* Hinged at its right end: the left end lifts first. */
+    transform-origin: 100% 100%;
+}
+
+.pack-art__crimp--bottom {
+    bottom: 0;
+    -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 0 0 / 4cqw 100%;
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 0 0 / 4cqw 100%;
+}
+
+/* Torn: the strip peels up from the left, holds at the right for a moment under tension,
+   snaps free and flutters away. Its bottom edge is ragged from the moment it tears. */
+.pack-art[data-torn] .pack-art__crimp--top {
+    clip-path: polygon(
+        0 0, 100% 0, 100% 10.6cqw, 93% 11.6cqw, 86% 10.4cqw, 79% 11.3cqw, 70% 10.2cqw, 62% 11.5cqw,
+        55% 10.5cqw, 47% 11.2cqw, 39% 10.1cqw, 31% 11.4cqw, 23% 10.4cqw, 15% 11.3cqw, 8% 10.3cqw, 0 11.1cqw
+    );
+    animation: rip 1s 0.1s forwards;
+}
+
+@keyframes rip {
+    0% {
+        transform: none;
+        animation-timing-function: ease-in;
+    }
+    24% {
+        transform: rotate(4deg);
+        animation-timing-function: ease-in-out;
+    }
+    48% {
+        transform: translateY(-1cqw) rotate(11deg);
+        animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+    }
+    58% {
+        transform: translate(2cqw, -4cqw) rotate(17deg);
+        opacity: 1;
+        animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+    }
+    100% {
+        transform: translate(30cqw, -78cqw) rotate(44deg);
+        opacity: 0;
+    }
+}
+
+/* What stays behind: a ragged top edge on the wrapper, dark inside. The polygon reaches past
+   the sides and bottom so the pack's shadow isn't clipped. */
+.pack-art[data-torn] .pack-art__body {
+    clip-path: polygon(
+        -60px 3.1cqw, 8% 2.3cqw, 15% 3.3cqw, 23% 2.4cqw, 31% 3.4cqw, 39% 2.1cqw, 47% 3.2cqw, 55% 2.5cqw,
+        62% 3.5cqw, 70% 2.2cqw, 79% 3.3cqw, 86% 2.4cqw, 93% 3.6cqw, calc(100% + 60px) 2.6cqw,
+        calc(100% + 60px) calc(100% + 80px), -60px calc(100% + 80px)
+    );
+}
+
+.pack-art__body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 2cqw, rgba(0, 0, 0, 0.35) 5cqw, transparent 11cqw);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pack-art[data-torn] .pack-art__body::after {
+    animation: mouth 0.6s 0.2s ease-out forwards;
+}
+
+@keyframes mouth {
+    to {
+        opacity: 1;
+    }
+}
+
+/* The pale, fibrous inner layer that shows where foil tears: a thin ragged band along the
+   strip's torn edge and along the wrapper's new top edge. Only visible once torn. */
+.pack-art__tear {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #d9cba9, #f1e6c9 30%, #c9b88f 55%, #efe2c1 80%, #d2c19b);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pack-art__tear--strip {
+    top: 0;
+    height: 100%;
+    clip-path: polygon(0% 10.2cqw, 8% 9.4cqw, 15% 10.4cqw, 23% 9.5cqw, 31% 10.5cqw, 39% 9.2cqw, 47% 10.3cqw, 55% 9.6cqw, 62% 10.6cqw, 70% 9.3cqw, 79% 10.4cqw, 86% 9.5cqw, 93% 10.7cqw, 100% 9.7cqw, 100% 10.6cqw, 93% 11.6cqw, 86% 10.4cqw, 79% 11.3cqw, 70% 10.2cqw, 62% 11.5cqw, 55% 10.5cqw, 47% 11.2cqw, 39% 10.1cqw, 31% 11.4cqw, 23% 10.4cqw, 15% 11.3cqw, 8% 10.3cqw, 0% 11.1cqw);
+}
+
+.pack-art__tear--body {
+    z-index: 5;
+    top: 0;
+    height: 6cqw;
+    clip-path: polygon(0% 3.1cqw, 8% 2.3cqw, 15% 3.3cqw, 23% 2.4cqw, 31% 3.4cqw, 39% 2.1cqw, 47% 3.2cqw, 55% 2.5cqw, 62% 3.5cqw, 70% 2.2cqw, 79% 3.3cqw, 86% 2.4cqw, 93% 3.6cqw, 100% 2.6cqw, 100% 3.5cqw, 93% 4.5cqw, 86% 3.3cqw, 79% 4.2cqw, 70% 3.1cqw, 62% 4.4cqw, 55% 3.4cqw, 47% 4.1cqw, 39% 3.0cqw, 31% 4.3cqw, 23% 3.3cqw, 15% 4.2cqw, 8% 3.2cqw, 0% 4.0cqw);
+}
+
+.pack-art[data-torn] .pack-art__tear {
+    opacity: 0.85;
+}
+
+/* Foil flecks along the tear line. */
+.pack-art__flecks {
+    position: absolute;
+    z-index: 4;
+    left: 0;
+    right: 0;
+    top: 11cqw;
+    pointer-events: none;
+}
+
+.pack-art__fleck {
+    position: absolute;
+    left: var(--x);
+    width: 1.4cqw;
+    height: 0.7cqw;
+    background: linear-gradient(90deg, #8a6a33, #d8b96f);
+    opacity: 0;
+    animation: fleck 0.7s cubic-bezier(0.15, 0.7, 0.35, 1) var(--delay) forwards;
+}
+
+@keyframes fleck {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+    }
+}
+
+/* ---------- On the page: the stack of sealed packs ---------- */
+
+.pack-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+    margin: 0 0 clamp(40px, 7vh, 80px);
+}
+
+.pack-stage--alone {
+    justify-content: center;
+    min-height: calc(100vh - var(--nav-h) - 190px);
+    margin-bottom: 0;
+}
+
+.pack-stack {
+    position: relative;
+    width: clamp(132px, 13vw, 170px);
+    aspect-ratio: 63 / 104;
+}
+
+.pack-stage--alone .pack-stack {
+    width: clamp(170px, 18vw, 230px);
+}
+
+/* The packs underneath: plain dark wrappers, fanned slightly. */
+.pack-ghost {
+    position: absolute;
+    inset: 8% 0;
+    background: linear-gradient(90deg, #15120d, #2a241a 20%, #2a241a 80%, #15120d);
+    border: 1px solid rgba(194, 155, 82, 0.5);
+    box-shadow:
+        inset 0 0 0 5px #221d15,
+        inset 0 0 0 6px rgba(194, 155, 82, 0.4),
+        0 12px 22px rgba(0, 0, 0, 0.5);
+    transform: translate(calc(var(--i) * 12px), calc(var(--i) * -7px)) rotate(calc(var(--i) * 4.5deg));
+    opacity: calc(1 - var(--i) * 0.22);
+}
+
+.pack-float {
+    position: absolute;
+    inset: 0;
+    animation: pack-bob 5s ease-in-out infinite alternate;
+}
+
+@keyframes pack-bob {
+    to {
+        translate: 0 -7px;
+    }
+}
+
+.pack {
+    --px: 0.3;
+    --rx: 0deg;
+    --ry: 0deg;
+    --hover: 0;
+
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(calc(var(--hover) * -6px));
+    transition: transform 0.7s var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pack[data-tilting] {
+    transition: transform 0.12s ease-out;
+}
+
+.pack:focus-visible {
+    outline-offset: 10px;
+}
+
+/* A warm glow that breathes behind the pack (static gradient, opacity only). */
+.pack__glow {
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(closest-side, rgba(232, 180, 90, 0.34), transparent);
+    animation: pack-glow 3.6s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes pack-glow {
+    from {
+        opacity: 0.45;
+    }
+    to {
+        opacity: 0.9;
+    }
+}
+
+/* ---------- The card cover (face down) ---------- */
+
+.cover {
+    --ornament: #9b9282;
+
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    clip-path: var(--rough-edge);
+    background: radial-gradient(ellipse 80% 70% at 50% 46%, #2b2722, #14120f 78%);
+}
+
+.cover::before {
+    content: "";
+    position: absolute;
+    inset: 3.6cqw;
+    z-index: 1;
+    border: 1.1cqw double rgba(185, 176, 160, 0.6);
+    pointer-events: none;
+}
+
+.cover__surface {
+    position: absolute;
+    inset: 0;
+    background: #f1e5c9;
+    opacity: 0.07;
+    -webkit-mask: url("/fx/Grime.webp") 60% 30% / 240% auto;
+    mask: url("/fx/Grime.webp") 60% 30% / 240% auto;
+}
+
+/* ==========================================================================
+   The opening overlay
+   ========================================================================== */
+
+.pack-opening {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.pack-opening__veil {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 5, 5, 0.9);
+}
+
+/* A flash of the rarity's light over the whole screen when an epic or legendary turns. */
+.pack-opening__flash {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.pack-opening__flash[data-rarity="epic"] {
+    background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(214, 184, 255, 0.55), rgba(140, 80, 230, 0.32) 40%, transparent 78%);
+}
+
+.pack-opening__flash[data-rarity="legendary"] {
+    background:
+        radial-gradient(ellipse 45% 45% at 50% 50%, rgba(255, 246, 222, 0.75), transparent 70%),
+        radial-gradient(ellipse 90% 90% at 50% 50%, rgba(255, 200, 110, 0.55), rgba(232, 150, 60, 0.25) 50%, transparent 85%);
+}
+
+/* The cards sit on their own layer so a big pull can shake them (Web Animations, translate). */
+.pack-opening__stage {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+}
+
+.pack-flight {
+    position: absolute;
+    z-index: 20;
+    will-change: transform;
+}
+
+.pack-flight__shake {
+    position: absolute;
+    inset: 0;
+}
+
+.pack-opening[data-phase="tear"] .pack-flight__shake {
+    animation: pack-shake 0.34s ease-in-out;
+}
+
+@keyframes pack-shake {
+    20% {
+        rotate: -2.2deg;
+        translate: -3px 0;
+    }
+    45% {
+        rotate: 2deg;
+        translate: 3px -1px;
+    }
+    70% {
+        rotate: -1.2deg;
+        translate: -1px 0;
+    }
+}
+
+/* Light from the opened top, in the colour of the best card inside. */
+.pack-flight__light {
+    position: absolute;
+    left: 50%;
+    top: 6%;
+    width: 170%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--r-hot) 75%, #fff),
+        color-mix(in srgb, var(--r) 45%, transparent) 32%,
+        transparent 72%
+    );
+    opacity: 0;
+    scale: 0.25;
+    transition:
+        opacity 0.6s ease 0.4s,
+        scale 1s var(--ease-out) 0.4s;
+    pointer-events: none;
+}
+
+.pack-opening:not([data-phase="rise"]) .pack-flight__light {
+    opacity: 0.85;
+    scale: 1;
+}
+
+.pack-flight[data-rarity="common"] .pack-flight__light {
+    --r: #d9d4c8;
+    --r-hot: #f4efe4;
+}
+
+.pack-opening__actions {
+    position: absolute;
+    z-index: 40;
+    left: 0;
+    right: 0;
+    bottom: clamp(24px, 5vh, 52px);
+    display: flex;
+    justify-content: center;
+}
+
+/* ---------- A card in the spread ---------- */
+
+.reveal-card {
+    --hint: 0;
+
+    position: absolute;
+    perspective: 1400px;
+    will-change: transform;
+}
+
+.reveal-card[data-rarity="rare"]      { --hint: 0.22; }
+.reveal-card[data-rarity="epic"]      { --hint: 0.42; }
+.reveal-card[data-rarity="legendary"] { --hint: 0.62; }
+
+/* Face down, the better cards already glow a little in their colour. */
+.reveal-card__aura {
+    position: absolute;
+    inset: -14%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--r) 65%, transparent), transparent);
+    opacity: var(--hint);
+    pointer-events: none;
+}
+
+.reveal-card[data-rarity="legendary"] .reveal-card__aura,
+.reveal-card[data-rarity="epic"] .reveal-card__aura {
+    animation: hint-pulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes hint-pulse {
+    from {
+        opacity: calc(var(--hint) * 0.55);
+    }
+    to {
+        opacity: var(--hint);
+    }
+}
+
+/* A burst of light as a rare (or better) card turns face up. */
+.reveal-card__burst {
+    position: absolute;
+    inset: -40%;
+    background: radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--r-hot) 85%, #fff),
+        color-mix(in srgb, var(--r) 50%, transparent) 38%,
+        transparent 70%
+    );
+    opacity: 0;
+    scale: 0.4;
+    pointer-events: none;
+}
+
+.reveal-card[data-flipped]:not([data-rarity="common"]) .reveal-card__burst {
+    animation: card-burst 1s ease-out;
+}
+
+.reveal-card[data-flipped][data-rarity="rare"] .reveal-card__burst {
+    animation-duration: 0.8s;
+}
+
+/* ---------- Epic and legendary: charge up, then celebrate ---------- */
+
+.reveal-card[data-rarity="epic"]      { --charge: 0.45s; --tremble: 1.3deg; }
+.reveal-card[data-rarity="legendary"] { --charge: 0.8s;  --tremble: 2.4deg; }
+
+/* Charging: the card trembles while its glow swells and light leaks from behind it. */
+.reveal-card[data-charging] .reveal-card__flip {
+    animation: charge-tremble 0.07s linear infinite alternate;
+}
+
+@keyframes charge-tremble {
+    from {
+        rotate: calc(var(--tremble) * -1);
+        translate: -1px 1px;
+    }
+    to {
+        rotate: var(--tremble);
+        translate: 1px -2px;
+    }
+}
+
+.reveal-card[data-charging] .reveal-card__aura {
+    animation: charge-aura var(--charge) ease-in forwards;
+}
+
+@keyframes charge-aura {
+    to {
+        opacity: 1;
+        scale: 1.45;
+    }
+}
+
+.reveal-card[data-charging] .reveal-card__burst {
+    animation: charge-light var(--charge) ease-in forwards;
+}
+
+@keyframes charge-light {
+    to {
+        opacity: 0.75;
+        scale: 0.95;
+    }
+}
+
+/* Turned: a bigger burst, a bigger pop, and the glow stays strong. */
+.reveal-card[data-celebrate][data-flipped] .reveal-card__burst {
+    animation: card-burst-big 1.3s cubic-bezier(0.15, 0.7, 0.3, 1);
+}
+
+@keyframes card-burst-big {
+    0% {
+        opacity: 1;
+        scale: 0.9;
+    }
+    20% {
+        opacity: 1;
+        scale: 1.25;
+    }
+    to {
+        opacity: 0;
+        scale: 2.3;
+    }
+}
+
+.reveal-card[data-celebrate] .reveal-card__aura {
+    animation: celebrate-aura 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes celebrate-aura {
+    from {
+        opacity: 0.7;
+        scale: 1.15;
+    }
+    to {
+        opacity: 1;
+        scale: 1.35;
+    }
+}
+
+.reveal-card[data-celebrate][data-rarity="epic"] .reveal-card__flip {
+    animation: card-pop-epic 0.9s cubic-bezier(0.3, 0.75, 0.2, 1);
+}
+
+.reveal-card[data-celebrate][data-rarity="legendary"] .reveal-card__flip {
+    animation: card-pop-legendary 1.1s cubic-bezier(0.3, 0.75, 0.2, 1);
+}
+
+@keyframes card-pop-epic {
+    40% {
+        scale: 1.16;
+    }
+}
+
+@keyframes card-pop-legendary {
+    35% {
+        scale: 1.26;
+    }
+    60% {
+        scale: 1.1;
+    }
+}
+
+/* Shockwave rings. */
+.reveal-card__ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border: 3px solid color-mix(in srgb, var(--r-hot) 75%, #fff);
+    border-radius: 50%;
+    box-shadow:
+        0 0 22px color-mix(in srgb, var(--r) 80%, transparent),
+        inset 0 0 18px color-mix(in srgb, var(--r) 70%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    animation: shockwave 1s cubic-bezier(0.1, 0.65, 0.3, 1) forwards;
+}
+
+.reveal-card__ring--late {
+    animation-duration: 1.4s;
+    animation-delay: 0.16s;
+}
+
+@keyframes shockwave {
+    0% {
+        opacity: 1;
+        scale: 0.25;
+    }
+    to {
+        opacity: 0;
+        scale: 3.4;
+    }
+}
+
+/* Rare: just a faint ring and a few sparks, a step up from common. */
+.reveal-card[data-shimmer] .reveal-card__ring {
+    border-width: 2px;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--r) 60%, transparent);
+    animation: shockwave-minor 0.8s cubic-bezier(0.1, 0.65, 0.3, 1) forwards;
+}
+
+@keyframes shockwave-minor {
+    0% {
+        opacity: 0.7;
+        scale: 0.5;
+    }
+    to {
+        opacity: 0;
+        scale: 1.9;
+    }
+}
+
+.reveal-card[data-shimmer] .spark {
+    animation-duration: calc(var(--d) * 0.8);
+}
+
+/* Legendary: slow rays of light that stay behind the card. */
+.reveal-card__rays {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 420%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(from 0deg, rgba(255, 214, 130, 0.5) 0deg 4deg, transparent 4deg 13deg);
+    -webkit-mask: radial-gradient(closest-side, #000 12%, transparent 70%);
+    mask: radial-gradient(closest-side, #000 12%, transparent 70%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    pointer-events: none;
+    animation:
+        rays-in 1.2s ease-out forwards,
+        rays-spin 30s linear infinite;
+    transition: opacity 0.3s ease;
+}
+
+@keyframes rays-in {
+    from {
+        opacity: 0;
+        scale: 0.3;
+    }
+    to {
+        opacity: 0.9;
+        scale: 1;
+    }
+}
+
+@keyframes rays-spin {
+    to {
+        rotate: 360deg;
+    }
+}
+
+.pack-opening[data-phase="collect"] .reveal-card__rays {
+    display: none;
+}
+
+/* Sparks thrown out in the rarity's colour. */
+.reveal-card__sparks {
+    position: absolute;
+    z-index: 5;
+    left: 50%;
+    top: 50%;
+    pointer-events: none;
+}
+
+.spark {
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, var(--r-hot) 45%, transparent 72%);
+    opacity: 0;
+    animation: spark var(--d) cubic-bezier(0.1, 0.75, 0.3, 1) var(--delay) forwards;
+}
+
+@keyframes spark {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1.2);
+    }
+    70% {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        transform: translate(var(--dx), var(--dy)) scale(0.3);
+    }
+}
+
+@keyframes card-burst {
+    25% {
+        opacity: 0.9;
+    }
+    to {
+        opacity: 0;
+        scale: 1.3;
+    }
+}
+
+.reveal-card__flip {
+    position: absolute;
+    inset: 0;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition:
+        transform 0.85s cubic-bezier(0.3, 0.75, 0.2, 1),
+        translate 0.3s var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reveal-card__flip:disabled {
+    cursor: default;
+}
+
+.reveal-card:not([data-flipped]) .reveal-card__flip:not(:disabled):hover {
+    translate: 0 -8px;
+}
+
+.reveal-card[data-flipped] .reveal-card__flip {
+    transform: rotateY(180deg);
+    cursor: default;
+    animation: card-pop 0.85s cubic-bezier(0.3, 0.75, 0.2, 1);
+}
+
+@keyframes card-pop {
+    40% {
+        scale: 1.08;
+    }
+}
+
+.reveal-card__side {
+    --backing: #2d2b28;
+
+    position: absolute;
+    inset: 0;
+    display: block;
+    container-type: inline-size;
+    isolation: isolate;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* The stone backing, as on the grid cards. */
+.reveal-card__side::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--backing);
+    clip-path: var(--rough-edge);
+    transform: translate(4px, 5px);
+}
+
+.reveal-card[data-rarity="legendary"] .reveal-card__side--face { --backing: #5c4219; }
+.reveal-card[data-rarity="epic"] .reveal-card__side--face      { --backing: #3a2c4f; }
+.reveal-card[data-rarity="rare"] .reveal-card__side--face      { --backing: #2a3442; }
+
+.reveal-card__side--face {
+    transform: rotateY(180deg);
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .pack-float,
+    .pack__glow,
+    .reveal-card__aura,
+    .reveal-card[data-flipped] .reveal-card__flip,
+    .reveal-card__burst {
+        animation: none !important;
+    }
+    .reveal-card__flip {
+        transition: none;
+    }
+    .pack-art[data-torn] .pack-art__crimp--top {
+        animation: none;
+        opacity: 0;
+    }
+    .pack-art__flecks {
+        display: none;
+    }
+    .reveal-card__rays,
+    .reveal-card__ring,
+    .reveal-card__sparks {
+        display: none;
+    }
+}
+
+/* Prototype only: the dev reset link under the deck. */
+.projects__reset {
+    margin: 0 0 48px;
+    text-align: center;
+}
+
+.projects__reset button {
+    padding: 0;
+    font-size: 0.9rem;
+    color: var(--mist);
+    background: none;
+    border: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}

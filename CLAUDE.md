@@ -116,6 +116,30 @@ Vite 6 + React 18 + react-router 7 + framer-motion 11, plain CSS (one file per a
   inspector and outside its 3D transform). Esc (caught in the capture phase so the card stays
   open), the × or a click beside the image closes it; ←/→ still switch images.
 
+### Booster packs (copied 1-on-1 from the prototype, commit `da9dd04`)
+
+The Projects page starts empty: visitors open booster packs to collect the project cards.
+- `src/data/collection.js` — the collection in `localStorage` (`projects:collection:v1`, an array
+  of slugs). `drawPack` takes up to `PACK_SIZE` (8) random projects not yet owned, so no doubles:
+  28 projects = packs of 8, 8, 8, 4. A pack is saved the moment it is opened.
+- `pages/Projects.jsx` — only owned cards are in the deck (sorting still works; the dropdown shows
+  from 2 cards), `BoosterPack` above the deck (alone and centred on a first visit), new cards
+  rendered hidden in their slots until their flight lands, the deal-in re-observes added cards,
+  textures pre-decoded on mount. The prototype's "Reset collection (dev)" link is switched off
+  here (`clearCollection` and the `.projects__reset` styles are kept); to start over, remove
+  `projects:collection:v1` from localStorage.
+- `components/BoosterPack.jsx` — `PackArt` (crimped foil strips, obsidian body with a gold double
+  rule, ornaments, "Projects" and the card count; sized in cqw) and the page stack (up to 3 packs
+  underneath, tilt, gentle bob and glow). The pack itself is the button.
+- `components/CardCover.jsx` — the face-down side shared by all cards (not `CardBack`).
+- `components/PackOpening.jsx` — the overlay: rise → tear (top strip ripped off, light in the best
+  card's colour) → spill (cards spring out face down: 4 across, 3 on tall screens) → reveal (click
+  to turn; rare shimmers, epic/legendary charge up and celebrate with burst, rings, sparks, flash
+  and shake; legendary rays) → "Add to collection" flies each card into its slot. Esc collects early.
+- `styles/packs.css` — all of the above. Measured here: rise/tear/spill, flips and collect at
+  ~6 ms/frame on a 165 Hz screen (worst frames 12–18 ms).
+- To keep the copy 1-on-1, re-copy these files from the prototype when it changes there.
+
 Left in the prototype for later steps: real project data and images, deal-in, Skills → Projects
 "summon" link, all other page content.
 
