@@ -22,8 +22,10 @@ const TITLES = {
 };
 
 // Pages can tune the shared sky via html[data-sky] (see atmosphere.css).
-// "skills" lifts the fog and reveals the deep stars and milky way.
-const SKY_MODES = { "/skills": "skills" };
+// A "skills" mode exists (lifts the fog, reveals the deep stars and milky way) but is switched
+// off until the Skills section is built: the page uses the same sky as the others for now.
+// To use it again: { "/skills": "skills" }.
+const SKY_MODES = {};
 
 const PAGE_FADE = {
     initial: { opacity: 0 },

@@ -32,7 +32,9 @@ Vite 6 + React 18 + react-router 7 + framer-motion 11, plain CSS (one file per a
 
 - `src/App.jsx` — router (Home/Projects/Skills/About), a Layout that keeps the sky and nav mounted,
   0.3s fade-out → scroll to top → 0.5s fade-in between pages, document titles. `SKY_MODES` maps a
-  route to `html[data-sky]` so a page can tune the background in CSS (`/skills` → `"skills"`).
+  route to `html[data-sky]` so a page can tune the background in CSS. The `"skills"` mode (milky
+  way, deep stars, less fog) is switched off for now: the user wants Skills to look like the other
+  pages until the Skills section is built.
 - `src/components/Atmosphere.jsx` + `src/styles/atmosphere.css` — the shared background:
   - stars: 200 near stars + 170 deep stars (deep ones and the milky way only show with
     `data-sky="skills"`), both spread over the top 85% so they run down behind the mountains.
