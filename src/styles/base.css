@@ -55,6 +55,9 @@
 html {
     background: var(--night);
     scrollbar-color: #3a3835 var(--night);
+    /* Keep the scrollbar's space when the card inspector locks scrolling,
+       so the page doesn't shift sideways under it. */
+    scrollbar-gutter: stable;
 }
 
 body {

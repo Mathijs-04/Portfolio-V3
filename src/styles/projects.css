@@ -22,3 +22,327 @@
         gap: 28px 18px;
     }
 }
+
+/* ==========================================================================
+   Inspector: the card flies out of the deck and turns over (from the prototype).
+   ========================================================================== */
+
+.inspector {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.inspector__veil {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 5, 5, 0.86);
+}
+
+.inspector__card {
+    position: absolute;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.inspector__side {
+    --backing: #2d2b28;
+
+    position: absolute;
+    inset: 0;
+    container-type: inline-size;
+    isolation: isolate;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.inspector[data-rarity="legendary"] .inspector__side { --backing: #5c4219; }
+.inspector[data-rarity="epic"] .inspector__side      { --backing: #3a2c4f; }
+.inspector[data-rarity="rare"] .inspector__side      { --backing: #2a3442; }
+
+.inspector__side--back {
+    transform: rotateY(180deg);
+}
+
+.inspector__close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    padding: 0.2rem 0.6rem;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--mist);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.inspector__close:hover {
+    color: var(--bone);
+}
+
+/* ---------- Card back ---------- */
+
+.face--back {
+    display: block;
+    padding: 0;
+}
+
+.face--back .ornament {
+    width: 16cqw;
+}
+
+/* The write-up scrolls inside the frame when it runs long. */
+.back {
+    position: absolute !important;
+    inset: 9cqw 7.5cqw 7.5cqw;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1cqw 2.5cqw 4cqw;
+    font-size: clamp(15px, 3.4cqw, 19px);
+    line-height: 1.5;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-faint) transparent;
+}
+
+.back__rarity {
+    margin: 0;
+    font-size: 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--r) 28%, var(--ink));
+}
+
+.face[data-rarity="common"] .back__rarity { color: var(--ink-soft); }
+.face[data-rarity="legendary"] .back__rarity { color: var(--legendary); }
+
+.back__name {
+    margin: 0.15em 0 0.1em;
+    font-size: clamp(24px, 6.6cqw, 44px);
+    font-weight: 600;
+    line-height: 1.1;
+    text-align: center;
+    text-wrap: balance;
+}
+
+.back__tagline {
+    margin: 0 0 1em;
+    font-weight: 500;
+    text-align: center;
+    color: var(--ink-soft);
+}
+
+.back__art {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 16 / 10;
+    border: 0.8cqw solid var(--ink);
+    outline: 0.3cqw solid var(--ink-faint);
+    outline-offset: 0.7cqw;
+    background: #111;
+    overflow: hidden;
+}
+
+/* Slides are stacked so the old and new image can pass each other. */
+.back__art img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: grab;
+    touch-action: pan-y; /* vertical swipes still scroll the write-up */
+    user-select: none;
+}
+
+.back__art img:active {
+    cursor: grabbing;
+}
+
+.gallery__count {
+    position: absolute;
+    right: 0.5em;
+    bottom: 0.4em;
+    z-index: 1;
+    margin: 0;
+    padding: 0 0.45em;
+    background: rgba(13, 12, 11, 0.62);
+    color: var(--bone);
+    font-size: 0.75em;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+/* Wraps onto more rows for long galleries, so every thumbnail stays reachable. */
+.back__thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5em;
+    margin-top: 0.9em;
+}
+
+.back__thumb {
+    flex: none;
+    width: 4.2em;
+    aspect-ratio: 16 / 10;
+    padding: 0;
+    border: 2px solid transparent;
+    outline: 1px solid var(--ink-faint);
+    background: #111;
+    cursor: pointer;
+    opacity: 0.6;
+    transition:
+        opacity 0.2s,
+        border-color 0.2s;
+}
+
+.back__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1);
+}
+
+.back__thumb:hover,
+.back__thumb.is-active {
+    opacity: 1;
+    border-color: var(--ink);
+}
+
+.back__thumb.is-active img {
+    filter: none;
+}
+
+.back__lore {
+    margin-top: 1.2em;
+}
+
+.back__lore p {
+    margin: 0 0 0.9em;
+    text-wrap: pretty;
+}
+
+.face--back:not([data-rarity="legendary"]) .back__lore p {
+    color: #1a1816;
+}
+
+.face[data-rarity="legendary"] .back__lore p {
+    color: #e9dcc0;
+}
+
+/* Full tech list: the same stamped icons as the front, with their names. */
+.back__tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45em;
+    margin: 1.2em 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.back__tech li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.15em 0.6em;
+    border: 1.5px solid var(--ink-faint);
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.back__tech svg {
+    flex: none;
+    width: 1.05em;
+    height: 1.05em;
+}
+
+.back__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8em;
+    margin-top: 1.6em;
+}
+
+/* Card links: a hand-cut plate with a double rule like the card's frame, in the rarity's
+   frame colour, small corner brackets (the card ornament) and a little grime. Hover presses the frame colour in, like a stamp. */
+.back__link {
+    --link-ink: var(--frame);
+
+    position: relative;
+    isolation: isolate;
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    min-width: 7.5em;
+    padding: 0.7em 1.6em;
+    border: 4px double var(--link-ink);
+    background: color-mix(in srgb, var(--frame) 9%, transparent);
+    color: var(--ink);
+    font-size: 1.05em;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    clip-path: var(--rough-edge);
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease;
+}
+
+.back__link svg {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+}
+
+.back__link-corner {
+    position: absolute;
+    width: 1.15em;
+    aspect-ratio: 1;
+    background: var(--link-ink);
+    -webkit-mask: url("/fx/corner-ornament.svg") center / contain no-repeat;
+    mask: url("/fx/corner-ornament.svg") center / contain no-repeat;
+    pointer-events: none;
+    transition: background-color 0.25s ease;
+}
+
+.back__link-corner--bl { left: 2px;  bottom: 2px; }
+.back__link-corner--br { right: 2px; bottom: 2px; transform: scaleX(-1); }
+.back__link-corner--tl { left: 2px;  top: 2px;    transform: scaleY(-1); }
+.back__link-corner--tr { right: 2px; top: 2px;    transform: rotate(180deg); }
+
+.back__link-grime {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ink);
+    opacity: 0.16;
+    -webkit-mask: url("/fx/Grime.webp") 60% 40% / 260% auto;
+    mask: url("/fx/Grime.webp") 60% 40% / 260% auto;
+    pointer-events: none;
+}
+
+.back__link--live .back__link-grime {
+    -webkit-mask-position: 15% 75%;
+    mask-position: 15% 75%;
+}
+
+/* On the filled plate the ornaments and text switch to the stone colour. Focus looks the
+   same as hover (an outline would be cut off by the hand-cut edge). */
+.back__link:hover,
+.back__link:focus-visible {
+    --link-ink: var(--face-bg);
+    background: var(--frame);
+    color: var(--face-bg);
+    outline: none;
+}
+
+.back__link:active {
+    translate: 0 1px;
+}
