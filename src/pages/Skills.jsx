@@ -1,9 +1,14 @@
-// Placeholder: this page gets built in a later step.
+import Constellations from "../components/Constellations.jsx";
+
+// For now just the sky: the stars don't stand for skills yet.
 function Skills() {
     return (
-        <div className="container">
-            <h1 className="page-title"><span className="ink">Skills</span></h1>
-        </div>
+        <>
+            <Constellations />
+            <div className="container">
+                <h1 className="page-title"><span className="ink">Skills</span></h1>
+            </div>
+        </>
     );
 }
 

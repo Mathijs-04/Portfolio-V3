@@ -8,6 +8,7 @@ import "./styles/home.css";
 import "./styles/card.css";
 import "./styles/projects.css";
 import "./styles/packs.css";
+import "./styles/skills.css";
 import App from "./App.jsx";
 
 createRoot(document.getElementById("root")).render(

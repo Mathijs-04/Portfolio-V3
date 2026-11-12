@@ -15,7 +15,8 @@ we move over one piece at a time and adjust it as we go.
    site, rarities set by the user), sorting and the deal-in are in. Still open: real
    texts/images for the Fantasy Portfolio card.
 3. **Home** — started early: name, role and an "Explore my work" button. Will be redesigned.
-4. Transfer and update the Skills section (constellations).
+4. Transfer and update the Skills section (constellations) ← started: the visual constellations
+   are in; the stars don't stand for skills yet. Next: skills data, labels, interaction.
 5. A brand-new About page.
 
 ## Running
@@ -115,6 +116,34 @@ Vite 6 + React 18 + react-router 7 + framer-motion 11, plain CSS (one file per a
   opens `ImageViewer.jsx`: near full-screen, portalled to `<body>` at z-index 200 (above the
   inspector and outside its 3D transform). Esc (caught in the capture phase so the card stays
   open), the × or a click beside the image closes it; ←/→ still switch images.
+
+### Skills (constellations, visual only so far)
+
+- The user's verdict so far: hand-drawn shapes with even spacing and solid, straight lines
+  looked "way too artificial". What they want: organic shapes, many stars (closer together is
+  fine), lines that are only a faint glow (straight, weathered), not a clear line. Rejected
+  along the way: solid lines, bowed curves, jagged polylines.
+- `src/data/constellations.js` — 5 generated shapes (10–11 stars each, `mag` 0–1, some stars
+  without a line) plus 9–13 `dust` stars each (secondary stars that fill the figure out, not
+  part of it), in "units"; stars ≥ 0.85 units apart. gen.py draws dust after the shape, so dust
+  can be regenerated without changing a seed's stars.
+  `LAYOUTS.wide` (18x6.8 grid) and `LAYOUTS.tall` (8.4x15, portrait screens) place each shape
+  (top-left in units, optional mirror).
+- `tools/constellations/` (Python + Pillow): `gen.py` grows candidate shapes from seeds
+  (wandering chain, uneven steps, branches, loose members, random rotation) into `cands.json`
+  and a contact sheet; `shapes.py` picks the seeds; `opt.py wide|tall` searches placements that
+  clear the title, the moon and the backdrop's real ridge on 7 landscape / 5 portrait sizes;
+  `preview.py` draws them over the backdrop. Its geometry mirrors the CSS: keep in sync.
+- `components/Constellations.jsx` + `styles/skills.css` — a fixed `.sky` layer (container
+  units, same box as the backdrop) fits the grid between the nav and 52% down the backdrop
+  frame; `--u` is one unit (~66px at 1280x800, ~35px on a phone). Stars use the background
+  stars' colour, a soft glow and an opacity twinkle, a little dimmer towards the horizon. Lines:
+  `.c-line` spans, not SVG: a 7px soft band (vertical gradient, no hard edge) rotated from star
+  to star, with an inline mask from `weather()` (fade in, patchy worn stretches, fade out),
+  fainter the longer they are, 0.2 opacity overall (`.constellation__lines`); they fade in once. Nothing moves (no drift).
+  Labels will not all fit at once (stars ~56px apart on desktop): show them per constellation.
+- Measured: Home → Skills ~6 ms/frame at 165 Hz, worst 12–18 ms; hiding the lines or the dust
+  made no difference (A/B in headless Chrome).
 
 ### Booster packs (copied 1-on-1 from the prototype, commit `da9dd04`)
 

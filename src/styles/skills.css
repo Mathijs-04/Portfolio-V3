@@ -1,0 +1,158 @@
+/* ==========================================================================
+   Skills: constellations drawn into the shared night sky.
+
+   Sizing: positions are in --u, one "unit" of the shapes (data/constellations.js). The grid
+   of --cols x --rows units is fitted into the free sky: below the nav, above where the
+   backdrop's mountains start (the backdrop frame is max(70% height, full width) tall, as in
+   atmosphere.css), with --side margins. Container units tie this to the same fixed box the
+   backdrop uses. Star sizes stay in px, like the background stars.
+
+   Look: the stars are background stars, just brighter (same colour, same twinkle), with
+   secondary "dust" stars filling out each figure. The lines are only a faint glow: straight,
+   soft-edged, weathered along their length and fading out towards both ends.
+
+   Performance: nothing moves. Stars twinkle with opacity; the lines are static (a gradient and
+   a mask each) and only their container fades in once.
+   ========================================================================== */
+
+.sky {
+    position: fixed;
+    inset: 0;
+    container-type: size;
+    pointer-events: none;
+}
+
+.sky__grid {
+    --frame-h: max(70cqh, 100cqw * 1512 / 4535);
+    --field-top: calc(var(--nav-h) + 8px);
+    --field-w: calc(100cqw * (1 - 2 * var(--side)));
+    --field-h: calc(100cqh - var(--frame-h) * (1 - var(--bottom)) - var(--field-top));
+    --u: min(var(--field-w) / var(--cols), var(--field-h) / var(--rows));
+
+    position: absolute;
+    top: var(--field-top);
+    left: calc(100cqw * var(--side) + (var(--field-w) - var(--cols) * var(--u)) / 2);
+    width: calc(var(--cols) * var(--u));
+    height: calc(var(--rows) * var(--u));
+}
+
+/* ---------- A constellation ---------- */
+
+.constellation {
+    position: absolute;
+    left: calc(var(--x) * var(--u));
+    top: calc(var(--y) * var(--u));
+    width: calc(var(--w) * var(--u));
+    height: calc(var(--h) * var(--u));
+}
+
+.constellation__lines {
+    position: absolute;
+    inset: 0;
+    opacity: 0.2;
+    /* The lines come out slowly once the page is there, as if the eye only now connects them. */
+    animation: constellation-lines-in 3s ease 0.8s both;
+}
+
+/* One line: a soft band of light with no hard edge, straight from star to star. It starts at
+   (--lx, --ly), is turned by --angle around its left middle, and its weathering (a patchy
+   fade along the length) is the inline mask from Constellations.jsx. Static. */
+.c-line {
+    position: absolute;
+    left: calc(var(--lx) * var(--u));
+    top: calc(var(--ly) * var(--u));
+    width: calc(var(--len) * var(--u));
+    height: 7px;
+    translate: 0 -50%;
+    rotate: var(--angle);
+    transform-origin: 0 50%;
+    opacity: var(--strength);
+    background: linear-gradient(
+        to bottom,
+        rgba(233, 230, 223, 0) 0%,
+        rgba(233, 230, 223, 0.35) 30%,
+        rgba(233, 230, 223, 1) 50%,
+        rgba(233, 230, 223, 0.35) 70%,
+        rgba(233, 230, 223, 0) 100%
+    );
+}
+
+@keyframes constellation-lines-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* ---------- Stars ---------- */
+
+.c-star,
+.c-dust {
+    position: absolute;
+    left: calc(var(--sx) * var(--u));
+    top: calc(var(--sy) * var(--u));
+}
+
+/* Brightness runs from just above the brightest background stars (mag 0) to the brightest in
+   the sky, each with a soft glow. */
+.c-star {
+    --core: calc(2.1px + var(--mag) * 2px);
+    opacity: calc((0.78 + var(--mag) * 0.22) * var(--dim));
+}
+
+.c-star__core {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--core);
+    height: var(--core);
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #e9edf5;
+    box-shadow:
+        0 0 3px 0.5px rgba(233, 237, 245, 0.5),
+        0 0 9px 1.5px rgba(233, 237, 245, 0.1);
+    will-change: opacity;
+    animation: c-twinkle-core var(--twinkle) ease-in-out infinite;
+    animation-delay: var(--twinkle-delay);
+}
+
+/* Only the few brightest get a wider, very soft bloom. */
+.c-star[data-bright] .c-star__core {
+    box-shadow:
+        0 0 3px 0.5px rgba(233, 237, 245, 0.6),
+        0 0 14px 3px rgba(233, 237, 245, 0.13);
+}
+
+/* Secondary stars around a constellation: not part of the figure, they fill it out. */
+.c-dust {
+    width: calc(0.9px + var(--mag) * 2px);
+    height: calc(0.9px + var(--mag) * 2px);
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #e9edf5;
+    opacity: calc((0.32 + var(--mag)) * var(--dim));
+    will-change: opacity;
+    animation: c-twinkle-dust var(--twinkle) ease-in-out infinite;
+    animation-delay: var(--twinkle-delay);
+}
+
+/* A gentle dip, not a blink. */
+@keyframes c-twinkle-core {
+    50% {
+        opacity: 0.72;
+    }
+}
+
+@keyframes c-twinkle-dust {
+    50% {
+        opacity: calc((0.32 + var(--mag)) * var(--dim) * 0.6);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .constellation__lines,
+    .c-star__core,
+    .c-dust {
+        animation: none;
+    }
+}
